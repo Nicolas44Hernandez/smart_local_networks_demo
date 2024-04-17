@@ -1,9 +1,8 @@
 """ REST controller for wifi bands management ressource """
-from ast import Str
 import logging
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from server.managers.wifi_bands_manager import wifi_bands_manager_service
+from server.managers.wifi_bands_ssh_manager import wifi_bands_manager_service
 from .rest_model import WifiStatusSchema, MacAdressListSchema
 
 logger = logging.getLogger(__name__)

@@ -52,9 +52,14 @@ loggers:
     handlers: [console]
     propagate: no
 
-  server.managers.wifi_bands_manager:
+  server.managers.wifi_bands_telnet_manager:
     level: INFO
     handlers: [manager_wifi_bands]
+    propagate: no
+
+  server.managers.wifi_bands_ssh_manager:
+    level: INFO
+    handlers: [console]
     propagate: no
 
   server.managers.smart_band_manager:
@@ -62,8 +67,13 @@ loggers:
     handlers: [console]
     propagate: no
 
-  server.interfaces.wifi_interface:
+  server.interfaces.wifi_interface_ssh:
     level: INFO
-    handlers: [manager_wifi_bands]
+    handlers: [console]
+    propagate: no
+
+  server.interfaces.wifi_interface_telnet:
+    level: INFO
+    handlers: [console]
     propagate: no
 

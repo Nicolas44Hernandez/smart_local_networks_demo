@@ -44,10 +44,12 @@ class BandCounters:
     last_txfail: int
     last_txretrans: int
     last_txerror: int
+    last_rxcrc: int
     rxrtry_pps: int
     txfail_pps: int
     txretrans_pps: int
     txerror_pps: int
+    rxcrc_pps:int
 
 @dataclass
 class StationCounters:
@@ -73,6 +75,7 @@ class StationCounters:
     tx_pkts_pps: int
     rx_pkts_pps: int
     tx_pkts_retries_rate: int
+    idle: int
     band: str
     last_sample_timestamp: datetime
     rtt_predictions: Iterable[float]

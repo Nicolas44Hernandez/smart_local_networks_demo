@@ -5,6 +5,7 @@ from flask import Flask
 from datetime import timedelta
 from timeloop import Timeloop
 from server.managers.smart_band_manager import band_5GHz_manager_service
+from server.managers.wifi_bands_ssh_manager import wifi_bands_manager_service
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,11 @@ class WiFiCountersPollAndPredict:
             logger.info("initializing the WiFiCountersPollAndPredict")
             # Initialize configuration
             self.counters_polling_period_in_secs = app.config["WIFI_COUNTERS_POLLING_PERIOD_IN_SECS"]
+
+            # Activate all the wifi bands
+            wifi_bands_manager_service.set_band_status(band="2.4GHz", status=True)
+            wifi_bands_manager_service.set_band_status(band="5GHz", status=True)
+            wifi_bands_manager_service.set_band_status(band="6GHz", status=True)
 
             # Schedule ressources polling
             self.schedule_predictions()

@@ -7,7 +7,7 @@ import yaml
 from flask import Flask
 from flask_cors import CORS
 
-from .managers.wifi_bands_manager import wifi_bands_manager_service
+from .managers.wifi_bands_ssh_manager import wifi_bands_manager_service
 from .managers.smart_band_manager import band_5GHz_manager_service
 from .application import poll_and_predict_manager_service
 from .rest_api.wifi_controler import bp as wifi_controler_bp

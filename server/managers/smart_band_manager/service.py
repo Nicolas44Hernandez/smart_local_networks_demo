@@ -7,9 +7,9 @@ from requests.exceptions import ConnectionError, InvalidURL
 from flask import Flask
 from datetime import datetime, timedelta
 from statistics import mean
-from server.managers.wifi_bands_manager import wifi_bands_manager_service
+from server.managers.wifi_bands_ssh_manager import wifi_bands_manager_service
 from .rtt_predictor import RttPredictor
-from .model import BandCounters, StationCounters, BandCountersSample, StationCountersSample, StationThroughputSample
+from .model import BandCounters, StationCounters
 
 logger = logging.getLogger(__name__)
 
@@ -90,21 +90,21 @@ class Wifi5GHzOnOffManager:
 
     def log_counters(self):
         """Log current counters"""
-        # if self.box_counters_2GHz is not None and self.box_counters_5GHz.last_rx_bytes is not None:
-        #     logger.info(f"last_sample_timestamp:{self.last_sample_timestamp}")
-        #     logger.info(f"*** 2GHz  rxrtry_pps:{self.box_counters_2GHz.rxrtry_pps} txfail_pps:{self.box_counters_2GHz.txfail_pps} txretrans_pps:{self.box_counters_2GHz.txretrans_pps} txerror_pps:{self.box_counters_2GHz.txerror_pps} tx_Mbps:{self.box_counters_2GHz.tx_Mbps} rx_Mbps:{self.box_counters_2GHz.rx_Mbps}")
-        #     logger.info(f"*** 5GHz  rxrtry_pps:{self.box_counters_5GHz.rxrtry_pps} txfail_pps:{self.box_counters_5GHz.txfail_pps} txretrans_pps:{self.box_counters_5GHz.txretrans_pps} txerror_pps:{self.box_counters_5GHz.txerror_pps} tx_Mbps:{self.box_counters_5GHz.tx_Mbps} rx_Mbps:{self.box_counters_5GHz.rx_Mbps}")
+        if self.box_counters_2GHz is not None and self.box_counters_5GHz.last_rx_bytes is not None:
+            logger.info(f"last_sample_timestamp:{self.last_sample_timestamp}")
+            logger.info(f"*** 2GHz  rxrtry_pps:{self.box_counters_2GHz.rxrtry_pps} txfail_pps:{self.box_counters_2GHz.txfail_pps} txretrans_pps:{self.box_counters_2GHz.txretrans_pps} txerror_pps:{self.box_counters_2GHz.txerror_pps}  rxcrc_pps:{self.box_counters_2GHz.rxcrc_pps} tx_Mbps:{self.box_counters_2GHz.tx_Mbps} rx_Mbps:{self.box_counters_2GHz.rx_Mbps}")
+            logger.info(f"*** 5GHz  rxrtry_pps:{self.box_counters_5GHz.rxrtry_pps} txfail_pps:{self.box_counters_5GHz.txfail_pps} txretrans_pps:{self.box_counters_5GHz.txretrans_pps} txerror_pps:{self.box_counters_5GHz.txerror_pps}  rxcrc_pps:{self.box_counters_5GHz.rxcrc_pps} tx_Mbps:{self.box_counters_5GHz.tx_Mbps} rx_Mbps:{self.box_counters_5GHz.rx_Mbps}")
 
-        logger.info(f"Connected stations: {[self.stations_counters[station].mac for station in self.stations_counters]}")
-        logger.info(f"Stations counters:")
-        for station in self.stations_counters:
-            tx_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].tx_Mbps)
-            rx_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].rx_Mbps)
-            rtt_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].rtt_predictions)
-            logger.info(f"*** {station}: tx_Mbps:[{tx_str}]  rx_str:[{rx_str}]  rtt_pred:[{rtt_str}]")
+        # logger.info(f"Connected stations: {[self.stations_counters[station].mac for station in self.stations_counters]}")
+        # logger.info(f"Stations counters:")
+        # for station in self.stations_counters:
+        #     tx_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].tx_Mbps)
+        #     rx_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].rx_Mbps)
+        #     rtt_str = ','.join("{:2.02f}".format(x) for x in self.stations_counters[station].rtt_predictions)
+        #     logger.info(f"*** {station}: tx_Mbps:[{tx_str}]  rx_str:[{rx_str}]  rtt_pred:[{rtt_str}]")
             #logger.info(f"*** {station}: tx_Mbps:{self.stations_counters[station].tx_Mbps}   rx_Mbps:{self.stations_counters[station].rx_Mbps}   rtt_predictions:{self.stations_counters[station].rtt_predictions}")
             #logger.info(f"*** {station}: smooth_rssi:{self.stations_counters[station].smooth_rssi}")
-            #logger.info(f"*** {station}: tx_retried_pps:{self.stations_counters[station].tx_retried_pps} rx_retried_pps:{self.stations_counters[station].rx_retried_pps}  tx_retries_pps:{self.stations_counters[station].tx_retries_pps} rx_decrypt_pps:{self.stations_counters[station].rx_decrypt_pps}  tx_failures_pps:{self.stations_counters[station].tx_failures_pps}  tx_pkts_pps:{self.stations_counters[station].tx_pkts_pps}  rx_pkts_pps:{self.stations_counters[station].rx_pkts_pps} tx_pkts_retries_rate:{self.stations_counters[station].tx_pkts_retries_rate}")
+            #logger.info(f"*** {station}: tx_retried_pps:{self.stations_counters[station].tx_retried_pps} rx_retried_pps:{self.stations_counters[station].rx_retried_pps}  tx_retries_pps:{self.stations_counters[station].tx_retries_pps} rx_decrypt_pps:{self.stations_counters[station].rx_decrypt_pps}  tx_failures_pps:{self.stations_counters[station].tx_failures_pps}  tx_pkts_pps:{self.stations_counters[station].tx_pkts_pps}  rx_pkts_pps:{self.stations_counters[station].rx_pkts_pps} tx_pkts_retries_rate:{self.stations_counters[station].tx_pkts_retries_rate} idle:{self.stations_counters[station].idle}")
 
     def restart_counters(self):
         """Restart bands counters and stations counters"""
@@ -117,8 +117,8 @@ class Wifi5GHzOnOffManager:
         """Update wifi bands counters"""
 
         # Get bands counters sample
-        txbytes_2GHz, rxbytes_2GHz, rxrtry_2GHz, txfail_2GHz, txretrans_2GHz, txerror_2GHz = self.get_band_tx_rx_counters(band="2.4GHz")
-        txbytes_5GHz, rxbytes_5GHz, rxrtry_5GHz, txfail_5GHz, txretrans_5GHz, txerror_5GHz = self.get_band_tx_rx_counters(band="5GHz")
+        txbytes_2GHz, rxbytes_2GHz, rxrtry_2GHz, txfail_2GHz, txretrans_2GHz, txerror_2GHz, rxcrc_2GHz = self.get_band_tx_rx_counters(band="2.4GHz")
+        txbytes_5GHz, rxbytes_5GHz, rxrtry_5GHz, txfail_5GHz, txretrans_5GHz, txerror_5GHz, rxcrc_5GHz = self.get_band_tx_rx_counters(band="5GHz")
 
         # If its the first sample or values are set to None
         if self.last_sample_timestamp is None:
@@ -132,10 +132,12 @@ class Wifi5GHzOnOffManager:
                 last_txfail=txfail_2GHz,
                 last_txretrans=txretrans_2GHz,
                 last_txerror=txerror_2GHz,
+                last_rxcrc=rxcrc_2GHz,
                 rxrtry_pps=None,
                 txfail_pps=None,
                 txretrans_pps=None,
                 txerror_pps=None,
+                rxcrc_pps=None,
             )
             self.box_counters_5GHz=BandCounters(
                 tx_Mbps=[],
@@ -146,10 +148,12 @@ class Wifi5GHzOnOffManager:
                 last_txfail=txfail_5GHz,
                 last_txretrans=txretrans_5GHz,
                 last_txerror=txerror_5GHz,
+                last_rxcrc=rxcrc_5GHz,
                 rxrtry_pps=None,
                 txfail_pps=None,
                 txretrans_pps=None,
                 txerror_pps=None,
+                rxcrc_pps=None,
             )
             logger.info("First txbytes and rxbytes sample setted")
             return None
@@ -165,8 +169,8 @@ class Wifi5GHzOnOffManager:
             return None
 
         # Log sample counters
-        # logger.info(f"*** 2GHz txbytes_2GHz:{txbytes_2GHz} rxbytes_2GHz:{rxbytes_2GHz} rxrtry_2GHz:{rxrtry_2GHz} txfail_2GHz:{txfail_2GHz} txretrans_2GHz:{txretrans_2GHz} txerror_2GHz:{txerror_2GHz}")
-        # logger.info(f"*** 5GHz txbytes_5GHz:{txbytes_5GHz} rxbytes_5GHz:{rxbytes_5GHz} rxrtry_5GHz:{rxrtry_5GHz} txfail_5GHz:{txfail_5GHz} txretrans_5GHz:{txretrans_5GHz} txerror_5GHz:{txerror_5GHz}")
+        logger.info(f"*** 2GHz txbytes_2GHz:{txbytes_2GHz} rxbytes_2GHz:{rxbytes_2GHz} rxrtry_2GHz:{rxrtry_2GHz} txfail_2GHz:{txfail_2GHz} txretrans_2GHz:{txretrans_2GHz} txerror_2GHz:{txerror_2GHz} rxcrc_2GHz:{rxcrc_2GHz}")
+        logger.info(f"*** 5GHz txbytes_5GHz:{txbytes_5GHz} rxbytes_5GHz:{rxbytes_5GHz} rxrtry_5GHz:{rxrtry_5GHz} txfail_5GHz:{txfail_5GHz} txretrans_5GHz:{txretrans_5GHz} txerror_5GHz:{txerror_5GHz} rxcrc_5GHz:{rxcrc_5GHz}")
 
         # Check that counters are not None
         if self.box_counters_2GHz is None or self.box_counters_2GHz is None:
@@ -205,14 +209,16 @@ class Wifi5GHzOnOffManager:
         txfail_pps_2GHz = (txfail_2GHz - self.box_counters_2GHz.last_txfail) / delta_time_in_secs
         txretrans_pps_2GHz = (txretrans_2GHz - self.box_counters_2GHz.last_txretrans) / delta_time_in_secs
         txerror_pps_2GHz = (txerror_2GHz - self.box_counters_2GHz.last_txerror) / delta_time_in_secs
+        rxcrc_pps_2GHz = (rxcrc_2GHz - self.box_counters_2GHz.last_rxcrc) / delta_time_in_secs
         rxrtry_pps_5GHz = (rxrtry_5GHz - self.box_counters_5GHz.last_rxrtry) / delta_time_in_secs
         txfail_pps_5GHz = (txfail_5GHz - self.box_counters_5GHz.last_txfail) / delta_time_in_secs
         txretrans_pps_5GHz = (txretrans_5GHz - self.box_counters_5GHz.last_txretrans) / delta_time_in_secs
         txerror_pps_5GHz = (txerror_5GHz - self.box_counters_5GHz.last_txerror) / delta_time_in_secs
+        rxcrc_pps_5GHz = (rxcrc_5GHz - self.box_counters_5GHz.last_rxcrc) / delta_time_in_secs
 
         # Log pps values
-        #logger.info(f"--- 2.4GHz rxrtry_pps_2GHz:{rxrtry_pps_2GHz} txfail_pps_2GHz:{txfail_pps_2GHz} txretrans_pps_2GHz:{txretrans_pps_2GHz} txerror_pps_2GHz:{txerror_pps_2GHz} ")
-        #logger.info(f"---   5GHz rxrtry_pps_5GHz:{rxrtry_pps_5GHz} txfail_pps_5GHz:{txfail_pps_5GHz} txretrans_pps_5GHz:{txretrans_pps_5GHz} txerror_pps_5GHz:{txerror_pps_5GHz} ")
+        logger.info(f"--- 2.4GHz rxrtry_pps_2GHz:{rxrtry_pps_2GHz} txfail_pps_2GHz:{txfail_pps_2GHz} txretrans_pps_2GHz:{txretrans_pps_2GHz} txerror_pps_2GHz:{txerror_pps_2GHz} rxcrc_pps_2GHz:{rxcrc_pps_2GHz}")
+        logger.info(f"---   5GHz rxrtry_pps_5GHz:{rxrtry_pps_5GHz} txfail_pps_5GHz:{txfail_pps_5GHz} txretrans_pps_5GHz:{txretrans_pps_5GHz} txerror_pps_5GHz:{txerror_pps_5GHz} rxcrc_pps_5GHz:{rxcrc_pps_5GHz}")
 
         # Update last sample taken value
         self.last_sample_timestamp = timestamp
@@ -222,20 +228,24 @@ class Wifi5GHzOnOffManager:
         self.box_counters_2GHz.last_txfail = txfail_2GHz
         self.box_counters_2GHz.last_txretrans = txretrans_2GHz
         self.box_counters_2GHz.last_txerror = txerror_2GHz
+        self.box_counters_2GHz.last_rxcrc = rxcrc_2GHz
         self.box_counters_2GHz.rxrtry_pps = rxrtry_pps_2GHz
         self.box_counters_2GHz.txfail_pps = txfail_pps_2GHz
         self.box_counters_2GHz.txretrans_pps = txretrans_pps_2GHz
         self.box_counters_2GHz.txerror_pps = txerror_pps_2GHz
+        self.box_counters_2GHz.rxcrc_pps = rxcrc_pps_2GHz
         self.box_counters_5GHz.last_tx_bytes = txbytes_5GHz
         self.box_counters_5GHz.last_rx_bytes = rxbytes_5GHz
         self.box_counters_5GHz.last_rxrtry=rxrtry_5GHz
         self.box_counters_5GHz.last_txfail=txfail_5GHz
         self.box_counters_5GHz.last_txretrans=txretrans_5GHz
         self.box_counters_5GHz.last_txerror=txerror_5GHz
+        self.box_counters_5GHz.last_rxcrc = rxcrc_5GHz
         self.box_counters_5GHz.rxrtry_pps = rxrtry_pps_5GHz
         self.box_counters_5GHz.txfail_pps = txfail_pps_5GHz
         self.box_counters_5GHz.txretrans_pps = txretrans_pps_5GHz
         self.box_counters_5GHz.txerror_pps = txerror_pps_5GHz
+        self.box_counters_5GHz.rxcrc_pps = rxcrc_pps_5GHz
 
         # Fill trafics arrays
         # IF array not fully filled
@@ -257,17 +267,18 @@ class Wifi5GHzOnOffManager:
         """Retrieve band tx and rx counters"""
         try:
             # Get tx and rx values
-            commands_response = wifi_bands_manager_service.execute_telnet_commands(["WIFI", "counters", band])
+            commands_response = wifi_bands_manager_service.execute_commands(["WIFI", "counters", band])
             txbyte = int(commands_response.split("txbyte")[1].split(" ")[1])
             rxbyte = int(commands_response.split("rxbyte")[1].split(" ")[1])
             rxrtry = int(commands_response.split("rxrtry")[1].split(" ")[1])
             txfail = int(commands_response.split("txfail")[1].split(" ")[1])
             txretrans = int(commands_response.split("txretrans")[1].split(" ")[1])
             txerror = int(commands_response.split("txerror")[1].split(" ")[1])
-            return txbyte, rxbyte, rxrtry, txfail, txretrans, txerror
+            rxcrc = int(commands_response.split("rxcrc")[1].split(" ")[1])
+            return txbyte, rxbyte, rxrtry, txfail, txretrans, txerror, rxcrc
         except Exception:
             logger.error("Error in counters command execution")
-            return None, None, None, None, None, None
+            return None, None, None, None, None, None, None
 
     def purge_old_station_counters(self, timestamp):
         # Get stations to delete
@@ -301,7 +312,7 @@ class Wifi5GHzOnOffManager:
             # Get connected stations counters
             current_sample_timestamp=datetime.now()
             _band=self.connected_stations[station]
-            station_txbytes, station_rxbytes, station_smooth_rssi, station_tx_retried, station_rx_retried, station_tx_retries, station_rx_decrypt, station_tx_failures, station_tx_pkts, station_rx_pkts = self.get_station_tx_rx_counters(station_mac=station, band=_band)
+            station_txbytes, station_rxbytes, station_smooth_rssi, station_tx_retried, station_rx_retried, station_tx_retries, station_rx_decrypt, station_tx_failures, station_tx_pkts, station_rx_pkts, station_idle = self.get_station_tx_rx_counters(station_mac=station, band=_band)
 
             # If its the first sample or values are set to None
             if station not in self.stations_counters or self.stations_counters[station].band != _band :
@@ -327,10 +338,12 @@ class Wifi5GHzOnOffManager:
                     tx_pkts_pps = 0,
                     rx_pkts_pps = 0,
                     tx_pkts_retries_rate = 0,
+                    idle=station_idle,
                     band = _band,
                     last_sample_timestamp = current_sample_timestamp,
                     rtt_predictions=[]
                 )
+
                 logger.info(f"First counters sample setted for station {station}")
                 continue
 
@@ -380,6 +393,7 @@ class Wifi5GHzOnOffManager:
             self.stations_counters[station].tx_pkts_pps = station_tx_pps
             self.stations_counters[station].rx_pkts_pps = station_rx_pps
             self.stations_counters[station].tx_pkts_retries_rate = station_tx_pkts_retries_rate
+            self.stations_counters[station].idle = station_idle
             self.stations_counters[station].band=_band
             self.stations_counters[station].last_sample_timestamp=current_sample_timestamp
 
@@ -402,22 +416,23 @@ class Wifi5GHzOnOffManager:
             logger.error(f"Station {station_mac} not connected")
             return None
 
-        commands_response = wifi_bands_manager_service.execute_telnet_commands(["WIFI", "counters", "station_info", band], station_mac=station_mac)
+        commands_response = wifi_bands_manager_service.execute_commands(["WIFI", "counters", "station_info", band], station_mac=station_mac)
         try:
-            txbyte = int(commands_response.split("tx total bytes")[1].split(" ")[1])
-            rxbyte = int(commands_response.split("rx data bytes")[1].split(" ")[1])
-            smooth_rssi = int(commands_response.split("smoothed rssi")[1].split(" ")[1].split("\r")[0])
-            tx_retried = int(commands_response.split("tx pkts retries")[1].split(" ")[1].split("\r")[0])
-            rx_retried = int(commands_response.split("rx total pkts retried")[1].split(" ")[1].split("\r")[0])
-            tx_retries = int(commands_response.split("tx pkts retries")[1].split(" ")[1].split("\r")[0])
-            rx_decrypt = int(commands_response.split("rx decrypt succeeds")[1].split(" ")[1].split("\r")[0])
-            tx_failures = int(commands_response.split("tx failures")[1].split(" ")[1].split("\r")[0])
-            tx_pkts = int(commands_response.split("tx total pkts")[1].split(" ")[1].split("\r")[0])
-            rx_pkts = int(commands_response.split("rx data pkts")[1].split(" ")[1].split("\r")[0])
+            txbyte = int(commands_response.split("tx total bytes")[1].split(": ")[1].split("\n")[0])
+            rxbyte = int(commands_response.split("rx data bytes")[1].split(": ")[1].split("\n")[0])
+            smooth_rssi = int(commands_response.split("smoothed rssi")[1].split(": ")[1].split("\n")[0])
+            tx_retried = int(commands_response.split("tx pkts retries")[1].split(": ")[1].split("\n")[0])
+            rx_retried = int(commands_response.split("rx total pkts retried")[1].split(": ")[1].split("\n")[0])
+            tx_retries = int(commands_response.split("tx pkts retries")[1].split(": ")[1].split("\n")[0])
+            rx_decrypt = int(commands_response.split("rx decrypt succeeds")[1].split(": ")[1].split("\n")[0])
+            tx_failures = int(commands_response.split("tx failures")[1].split(": ")[1].split("\n")[0])
+            tx_pkts = int(commands_response.split("tx total pkts")[1].split(": ")[1].split("\n")[0])
+            rx_pkts = int(commands_response.split("rx data pkts")[1].split(": ")[1].split("\n")[0])
+            idle = int(commands_response.split("idle")[1].split(" ")[1])
         except:
             logger.error("Error retreiving counters all counters are assumed to 0 Mbps ")
-            return 0,0,0,0,0,0,0
-        return txbyte, rxbyte, smooth_rssi, tx_retried, rx_retried, tx_retries, rx_decrypt, tx_failures, tx_pkts, rx_pkts
+            return 0,0,0,0,0,0,0,0,0,0,0
+        return txbyte, rxbyte, smooth_rssi, tx_retried, rx_retried, tx_retries, rx_decrypt, tx_failures, tx_pkts, rx_pkts, idle
 
     def perform_rtt_predictions_model_1(self):
         """Get compute values and perform RTT predictions"""
